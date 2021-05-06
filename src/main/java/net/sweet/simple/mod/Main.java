@@ -2,7 +2,7 @@ package net.sweet.simple.mod;
 
 import net.fabricmc.api.ModInitializer;
 import net.sweet.simple.mod.materials.Diamerite;
-import net.sweet.simple.mod.materials.Quarry;
+import net.sweet.simple.mod.blocks.Quarry;
 
 
 public class Main implements ModInitializer {
