@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#",
+    "#",
+    "/"
+  ],
+  "key": {
+    "#": {
+      "item": "sweet-simple-mod:diamerite"
+    },
+    "/": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "sweet-simple-mod:diamerite_sword",
+    "count": 1
+  }
+}
