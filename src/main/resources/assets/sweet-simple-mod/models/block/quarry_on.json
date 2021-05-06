@@ -1,0 +1,8 @@
+{
+  "parent": "block/orientable",
+  "textures": {
+    "top": "sweet-simple-mod:block/quarry_top",
+    "front": "sweet-simple-mod:block/quarry_front_on",
+    "side": "sweet-simple-mod:block/quarry_side"
+  }
+}

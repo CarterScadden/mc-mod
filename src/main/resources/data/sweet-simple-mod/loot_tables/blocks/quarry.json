@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "sweet-simple-mod:query"
+          "name": "sweet-simple-mod:quarry"
         }
       ],
       "conditions": [
