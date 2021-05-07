@@ -65,6 +65,17 @@ public class Quarry {
             );
 
             setDefaultState(getStateManager().getDefaultState().with(QUARRYING, false));
+
+            /*
+            * function that runs every tick (or however is the proper way of doing this
+            * hold fuel
+            * if burning fuel
+            * nearestAvailableInventory(): Inventory
+            * & if availInventory
+            * try and mine (): Item
+            * if item != nil
+            *  availInventory.push(item)
+            * */
         }
 
         @Override
