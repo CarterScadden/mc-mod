@@ -1,11 +1,14 @@
 package net.sweet.simple.mod.blocks;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.tool.attribute.v1.FabricToolTags;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.PiglinBrain;
 import net.minecraft.entity.player.PlayerEntity;
@@ -20,6 +23,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.screen.*;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.tag.BlockTags;
@@ -39,16 +43,17 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.sweet.simple.mod.CONSTANTS;
+import net.sweet.simple.mod.ServerMain;
 import net.sweet.simple.mod.presets.ImplementedInventory;
 import org.jetbrains.annotations.Nullable;
 
 public class Quarry {
-    private static final int INVENTORY_SIZE = 18;
+    private static final int INVENTORY_SIZE = 9;
     public static final String NAME = "quarry";
     public static BlockEntityType<BlockEntity> BLOCK_ENTITY;
     public static final net.minecraft.block.Block BLOCK = new Block();
 
-    public static class Block extends net.minecraft.block.Block {
+    public static class Block extends net.minecraft.block.BlockWithEntity {
         public static BooleanProperty QUARRYING = BooleanProperty.of("quarrying");
 
         public Block() {
@@ -98,11 +103,6 @@ public class Quarry {
         }
 
         @Override
-        public BlockRenderType getRenderType(BlockState state) {
-            return BlockRenderType.MODEL;
-        }
-
-        @Override
         public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
             net.minecraft.block.entity.BlockEntity block = world.getBlockEntity(pos);
 
@@ -122,6 +122,16 @@ public class Quarry {
         }
 
         @Override
+        public net.minecraft.block.entity.BlockEntity createBlockEntity(BlockView world) {
+            return new BlockEntity();
+        }
+
+        @Override
+        public BlockRenderType getRenderType(BlockState state) {
+            return BlockRenderType.MODEL; // else this is unseeable
+        }
+
+        @Override
         public boolean hasComparatorOutput(BlockState state) {
             return true;
         }
@@ -132,8 +142,7 @@ public class Quarry {
         }
     }
 
-    static class BlockEntity extends net.minecraft.block.entity.BlockEntity implements ImplementedInventory/*, NamedScreenHandlerFactory*/ {
-        static public final String NAME = "Quarry";
+    static class BlockEntity extends net.minecraft.block.entity.BlockEntity implements ImplementedInventory, NamedScreenHandlerFactory {
         DefaultedList<ItemStack> items = DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY);
 
         public BlockEntity() {
@@ -167,7 +176,6 @@ public class Quarry {
 
         // START: NamedScreenHandlerFactory
 
-/*
         @Override
         public Text getDisplayName() {
             return new TranslatableText(getCachedState().getBlock().getTranslationKey());
@@ -177,49 +185,49 @@ public class Quarry {
         public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
             //We provide *this* to the screenHandler as our class Implements Inventory
             //Only the Server has the Inventory at the start, this will be synced to the client in the ScreenHandler
-            return new QuarryScreenHandler(syncId, playerInventory, this);
+            return new ScreenHandler(syncId, playerInventory, this);
         }
-*/
 
         // END: NamedScreenHandlerFactory
     }
 
-    /*static class QuarryScreenHandler extends ScreenHandler {
-        private final Inventory inventory;
+    public static class ScreenHandler extends net.minecraft.screen.ScreenHandler {
+        public Inventory inventory;
 
-        //This constructor gets called on the client when the server wants it to open the screenHandler,
-        //The client will call the other constructor with an empty Inventory and the screenHandler will automatically
-        //sync this empty inventory with the inventory on the server.
-        public QuarryScreenHandler(int syncId, PlayerInventory playerInventory) {
-            this(syncId, playerInventory, new SimpleInventory(9));
+        public ScreenHandler(int id, PlayerInventory playerInventory) {
+            this(id, playerInventory, new SimpleInventory(INVENTORY_SIZE));
         }
 
         //This constructor gets called from the BlockEntity on the server without calling the other constructor first, the server knows the inventory of the container
         //and can therefore directly provide it as an argument. This inventory will then be synced to the client.
-        public QuarryScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory) {
-            super(ExampleMod.BOX_SCREEN_HANDLER, syncId);
-            checkSize(inventory, 9);
+        public ScreenHandler(int id, PlayerInventory playerInventory, Inventory inventory) {
+            super(ServerMain.SCREEN_HANDLER, id);
+            checkSize(inventory, INVENTORY_SIZE);
+
             this.inventory = inventory;
-            //some inventories do custom logic when a player opens it.
-            inventory.onOpen(playerInventory.player);
+
+            inventory.onOpen(playerInventory.player); //some inventories do custom logic when a player opens it.
 
             //This will place the slot in the correct locations for a 3x3 Grid. The slots exist on both server and client!
             //This will not render the background of the slots however, this is the Screens job
             int m;
             int l;
+
             //Our inventory
             for (m = 0; m < 3; ++m) {
                 for (l = 0; l < 3; ++l) {
                     this.addSlot(new Slot(inventory, l + m * 3, 62 + l * 18, 17 + m * 18));
                 }
             }
-            //The player inventory
+
+            //The players inventory
             for (m = 0; m < 3; ++m) {
                 for (l = 0; l < 9; ++l) {
                     this.addSlot(new Slot(playerInventory, l + m * 9 + 9, 8 + l * 18, 84 + m * 18));
                 }
             }
-            //The player Hotbar
+
+            //The players Hotbar
             for (m = 0; m < 9; ++m) {
                 this.addSlot(new Slot(playerInventory, m, 8 + m * 18, 142));
             }
@@ -232,6 +240,7 @@ public class Quarry {
         }
 
         // Shift + Player Inv Slot
+        // handle the transfer of items
         @Override
         public ItemStack transferSlot(PlayerEntity player, int invSlot) {
             ItemStack newStack = ItemStack.EMPTY;
@@ -256,7 +265,40 @@ public class Quarry {
 
             return newStack;
         }
-    }*/
+    }
+
+    public static class Screen extends HandledScreen<ScreenHandler> {
+        // A path to the gui texture. In this example we use the texture from the dispenser
+        private static final Identifier TEXTURE = new Identifier("minecraft", "textures/gui/container/dispenser.png");
+
+        public Screen(ScreenHandler handler, PlayerInventory inventory, Text title) {
+            super(handler, inventory, title);
+        }
+
+        @Override
+        protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
+            RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+            assert client != null;
+            client.getTextureManager().bindTexture(TEXTURE);
+            int x = (width - backgroundWidth) / 2;
+            int y = (height - backgroundHeight) / 2;
+            drawTexture(matrices, x, y, 0, 0, backgroundWidth, backgroundHeight);
+        }
+
+        @Override
+        public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+            renderBackground(matrices);
+            super.render(matrices, mouseX, mouseY, delta);
+            drawMouseoverTooltip(matrices, mouseX, mouseY);
+        }
+
+        @Override
+        protected void init() {
+            super.init();
+            // Center the title
+            titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
+        }
+    }
 
     static public void Register() {
         // register block entity

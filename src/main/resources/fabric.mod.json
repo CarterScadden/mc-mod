@@ -19,6 +19,11 @@
   "environment": "*",
   "entrypoints": {
     "main": [
+      "net.sweet.simple.mod.ServerMain"
+    ],
+    "server": [
+    ],
+    "client": [
       "net.sweet.simple.mod.Main"
     ]
   },

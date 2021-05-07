@@ -1,16 +1,16 @@
 package net.sweet.simple.mod;
 
-import net.fabricmc.api.ModInitializer;
-import net.sweet.simple.mod.materials.Diamerite;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
 import net.sweet.simple.mod.blocks.Quarry;
 
+@Environment(EnvType.CLIENT)
+public class Main implements ClientModInitializer {
 
-public class Main implements ModInitializer {
-
-    // what runs on client and server
     @Override
-    public void onInitialize() {
-        Diamerite.Register();
-        Quarry.Register();
+    public void onInitializeClient() {
+        ScreenRegistry.register(ServerMain.SCREEN_HANDLER, Quarry.Screen::new);
     }
 }
